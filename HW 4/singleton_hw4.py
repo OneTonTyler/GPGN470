@@ -10,7 +10,7 @@ import os
 
 
 def extract_raw(fname, current_dir='raws/'):
-    """Return a numpy array from raws
+    """Return a 2D numpy array from raws
 
     Keyword arguments:
         fname -- filename
@@ -48,11 +48,7 @@ def hist_equalize(img, n_bins=256):
 
 
 def hist_linear(img):
-    """Returns an enhanced image using a linear contrast stretch
-
-    Keyword arguments:
-        img -- image array
-    """
+    """Returns an enhanced image using a linear contrast stretch"""
     # Find min and max values
     min_val = np.amin(img)
     max_val = np.amax(img)
@@ -63,17 +59,46 @@ def hist_linear(img):
 # Compose an array of all bands
 bands = np.array([extract_raw(fname=f'band{i+1}c.raw') for i in range(7)])
 
-# Testing
-test_fig = hist_equalize(bands[5])
+# --- Question 2 ---
 
-# plt.figure()
-# plt.imshow(test_fig, cmap='gray')
-# plt.show()
+# --- Part I ---
+fig, ax = plt.subplots(1, 3, figsize=(10, 5), constrained_layout=True)
+fig.suptitle('Thermal Infrared Images from Landsat over San Diego', fontsize=16, y=0.92)
 
-plt.figure()
-plt.hist(test_fig.flatten(), 64)
-plt.xlim(0,256)
+for i, func in zip(range(3), [lambda x: x, hist_linear, hist_equalize]):
+    data = func(bands[5])
+    im = ax[i].imshow(data, cmap='gray', clim=(0, 255))
+
+# Setting Titles
+ax[0].set_title('Original Data (0-255)')
+ax[1].set_title('Linear Contrast Stretch')
+ax[2].set_title('Histogram Equalization')
+
+ax_cbar = fig.add_axes([0.25, 0.08, 0.50, 0.05])
+plt.colorbar(im, orientation='horizontal', cax=ax_cbar)
+
+plt.savefig('Enhanced_Images')
 plt.show()
 
+# --- Part II ---
+fig, ax = plt.subplots(1, 3, figsize=(10, 5), sharey='all')
+fig.suptitle('Thermal Infrared Images Histograms from Landsat over San Diego', fontsize=16)
 
+for i, func in zip(range(3), [lambda x: x, hist_linear, hist_equalize]):
+    data = func(bands[5]).ravel()
+    im = ax[i].hist(data, bins=64)
+
+    ax[i].set_xlim(0, 255)
+
+# Setting Titles
+ax[0].set_title('Original Data (0-255)')
+ax[1].set_title('Linear Contrast Stretch')
+ax[2].set_title('Histogram Equalization')
+
+ax[0].set_ylabel('Counts')
+ax[1].set_xlabel('Color Value')
+
+plt.tight_layout()
+plt.savefig('Enhanced_Image_Histograms')
+plt.show()
 
