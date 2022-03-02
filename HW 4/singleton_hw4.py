@@ -53,11 +53,21 @@ def hist_linear(img):
     min_val = np.amin(img)
     max_val = np.amax(img)
 
-    return ((img - min_val)/(max_val - min_val)) * 255
+    return ((img - min_val) / (max_val - min_val)) * 255
 
+
+# Band  Color           Min     Center
+# --------------------------------------
+# 0     Blue-Green      0.45    0.485
+# 1     Green           0.52    0.56
+# 2     Red             0.63    0.66
+# 3     Near-IR         0.76    0.83
+# 4     Mid-IR          1.55    1.65
+# 5     Thermal-IR      10.40   11.45
+# 6     Mid-IR          2.08    2.255
 
 # Compose an array of all bands
-bands = np.array([extract_raw(fname=f'band{i+1}c.raw') for i in range(7)])
+bands = np.array([extract_raw(fname=f'band{i + 1}c.raw') for i in range(7)])
 
 # --- Question 2 ---
 
@@ -86,8 +96,7 @@ fig.suptitle('Thermal Infrared Images Histograms from Landsat over San Diego', f
 
 for i, func in zip(range(3), [lambda x: x, hist_linear, hist_equalize]):
     data = func(bands[5]).ravel()
-    im = ax[i].hist(data, bins=64)
-
+    ax[i].hist(data, bins=64)
     ax[i].set_xlim(0, 255)
 
 # Setting Titles
@@ -102,3 +111,35 @@ plt.tight_layout()
 plt.savefig('Enhanced_Image_Histograms')
 plt.show()
 
+# --- Question 3 ---
+rgb = np.stack((bands[2], bands[1], bands[0]))
+
+# Plot rgb images
+# Pre-stack enhancement
+fig, ax = plt.subplots(2, 3, figsize=(10, 5), sharey='all', sharex='all')
+fig.suptitle('RGB Images from Landsat over San Diego', fontsize=16, y=0.98)
+
+for i, func in zip(range(3), [lambda x: x, hist_linear, hist_equalize]):
+    data_rgb = np.stack(list(map(func, rgb)), axis=2).astype(int)
+    ax[0, i].imshow(data_rgb)
+
+# Post-stack enhancement
+for i, func in zip(range(3), [lambda x: x, hist_linear, hist_equalize]):
+    data_rgb = func(np.stack(rgb[:], axis=2)).astype(int)
+    ax[1, i].imshow(data_rgb)
+
+# Setting Titles
+ax[0, 0].set_title('Original Data (0-255)')
+ax[0, 1].set_title('Linear Contrast Stretch')
+ax[0, 2].set_title('Histogram Equalization')
+
+# ax[1, 0].set_title('Original Data (0-255)')
+# ax[1, 1].set_title('Linear Contrast Stretch')
+# ax[1, 2].set_title('Histogram Equalization')
+
+ax[0, 0].set_ylabel('Pre-Stack', fontsize=12, labelpad=20)
+ax[1, 0].set_ylabel('Post-Stack', fontsize=12, labelpad=20)
+
+plt.tight_layout()
+plt.savefig('RGB_Enhanced_Images')
+plt.show()
