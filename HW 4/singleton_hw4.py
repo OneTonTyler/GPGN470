@@ -133,13 +133,29 @@ ax[0, 0].set_title('Original Data (0-255)')
 ax[0, 1].set_title('Linear Contrast Stretch')
 ax[0, 2].set_title('Histogram Equalization')
 
-# ax[1, 0].set_title('Original Data (0-255)')
-# ax[1, 1].set_title('Linear Contrast Stretch')
-# ax[1, 2].set_title('Histogram Equalization')
-
 ax[0, 0].set_ylabel('Pre-Stack', fontsize=12, labelpad=20)
 ax[1, 0].set_ylabel('Post-Stack', fontsize=12, labelpad=20)
 
 plt.tight_layout()
 plt.savefig('RGB_Enhanced_Images')
 plt.show()
+
+
+# --- Question 4 ---
+# Normalized Difference Vegetation Index
+# NDVI = (Near IR - Red) / (Near IR + Red)
+red = bands[2].ravel().astype(float)
+near_ir = bands[3].ravel().astype(float)
+NDVI = np.array([(n - r) / (n + r) for n, r in zip(near_ir, red)]).reshape(1500, 1500)
+
+# Plot Figure
+plt.figure(figsize=(10, 10), constrained_layout=True)
+plt.imshow(NDVI)
+
+plt.title('Normalized Difference Vegetation Index over San Diego from Landsat', fontsize=16, y=1.02)
+plt.colorbar(fraction=0.046, pad=0.04)
+
+plt.savefig('NDVI')
+plt.show()
+
+# --- Question 5 ---
