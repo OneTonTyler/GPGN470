@@ -72,7 +72,7 @@ bands = np.array([extract_raw(fname=f'band{i + 1}c.raw') for i in range(7)])
 # --- Question 2 ---
 
 # --- Part I ---
-fig, ax = plt.subplots(1, 3, figsize=(10, 5), constrained_layout=True)
+fig, ax = plt.subplots(1, 3, figsize=(10, 5), sharey=True, constrained_layout=True)
 fig.suptitle('Thermal Infrared Images from Landsat over San Diego', fontsize=16, y=0.92)
 
 for i, func in zip(range(3), [lambda x: x, hist_linear, hist_equalize]):
@@ -84,7 +84,13 @@ ax[0].set_title('Original Data (0-255)')
 ax[1].set_title('Linear Contrast Stretch')
 ax[2].set_title('Histogram Equalization')
 
-ax_cbar = fig.add_axes([0.25, 0.08, 0.50, 0.05])
+# Setting Labels
+ax[0].set_ylabel('Row Index')
+ax[0].set_xlabel('Column Index')
+ax[1].set_xlabel('Column Index')
+ax[2].set_xlabel('Column Index')
+
+ax_cbar = fig.add_axes([0.25, 0.05, 0.50, 0.05])
 plt.colorbar(im, orientation='horizontal', cax=ax_cbar)
 
 plt.savefig('Enhanced_Images')
@@ -105,7 +111,9 @@ ax[1].set_title('Linear Contrast Stretch')
 ax[2].set_title('Histogram Equalization')
 
 ax[0].set_ylabel('Counts')
+ax[0].set_xlabel('Color Value')
 ax[1].set_xlabel('Color Value')
+ax[2].set_xlabel('Color Value')
 
 plt.tight_layout()
 plt.savefig('Enhanced_Image_Histograms')
@@ -133,13 +141,17 @@ ax[0, 0].set_title('Original Data (0-255)')
 ax[0, 1].set_title('Linear Contrast Stretch')
 ax[0, 2].set_title('Histogram Equalization')
 
-ax[0, 0].set_ylabel('Pre-Stack', fontsize=12, labelpad=20)
-ax[1, 0].set_ylabel('Post-Stack', fontsize=12, labelpad=20)
+# Setting Labels
+ax[0, 0].set_ylabel('Row Index (Pre-Stack)')
+ax[1, 0].set_ylabel('Row Index (Post-Stack)')
+
+ax[1, 0].set_xlabel('Column Index')
+ax[1, 1].set_xlabel('Column Index')
+ax[1, 2].set_xlabel('Column Index')
 
 plt.tight_layout()
 plt.savefig('RGB_Enhanced_Images')
 plt.show()
-
 
 # --- Question 4 ---
 # Normalized Difference Vegetation Index
@@ -155,7 +167,66 @@ plt.imshow(NDVI)
 plt.title('Normalized Difference Vegetation Index over San Diego from Landsat', fontsize=16, y=1.02)
 plt.colorbar(fraction=0.046, pad=0.04)
 
+plt.ylabel('Row Index')
+plt.xlabel('Column Index')
+
 plt.savefig('NDVI')
 plt.show()
 
+
 # --- Question 5 ---
+def smoothing_kernel(img, wid=9):
+    """Smoothing filter"""
+    smooth_filter = np.ones((wid, wid), dtype=float)*1/wid**2
+    return scipy.signal.convolve2d(img, smooth_filter, mode='valid')
+
+
+def sharping_kernel(img):
+    """Sharpening filter"""
+    identity = np.identity(3)
+    lap_filter = [[1/9, 1/9, 1/9], [1/9, -20, 1/9], [1/9, 1/9, 1/9]]
+    return scipy.signal.convolve2d(img, identity - lap_filter, mode='valid')
+
+
+def illuminate_kernel(img):
+    """Sobel filter"""
+    x = [[47, 0, -47],
+         [162, 0, -162],
+         [47, 0, -47]]
+
+    y = [[47, 162, 47],
+         [0, 0, 0],
+         [-47, -162, -47]]
+
+    img_x = scipy.signal.convolve2d(img, x, mode='valid')
+    img_y = scipy.signal.convolve2d(img, y, mode='valid')
+
+    sobel_filter = (img_x**2 + img_y**2) ** 0.5
+    return sobel_filter
+
+
+fig, ax = plt.subplots(2, 2, figsize=(10, 10), sharex='all', sharey='all')
+plt.suptitle('Filtered Images over San Diego from Landsat - Band 1', fontsize=16)
+
+for i, func in zip(range(2), [lambda x: x, smoothing_kernel]):
+    ax[0, i].imshow(func(bands[0].astype(float)), cmap='gray')
+
+for i, func in zip(range(2), [sharping_kernel, illuminate_kernel]):
+    ax[1, i].imshow(func(bands[0].astype(float)), cmap='gray')
+
+# Setting Titles
+ax[0, 0].set_title('Original Data (0-255)')
+ax[0, 1].set_title('Smoothed Filter')
+ax[1, 0].set_title('Sharpened Filter')
+ax[1, 1].set_title('Sobel Filter')
+
+# Setting Labels
+ax[0, 0].set_ylabel('Row Index')
+ax[1, 0].set_ylabel('Row Index')
+
+ax[1, 0].set_xlabel('Column Index')
+ax[1, 1].set_xlabel('Column Index')
+
+plt.tight_layout()
+plt.savefig('Filtered_Images')
+plt.show()
