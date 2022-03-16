@@ -218,8 +218,9 @@ LDA = LinearDiscriminantAnalysis()
 LDA.fit_transform(spectral_value, target)
 
 # Reshaping data
+# Reshaping is causing an issue, but I do not have the time to fix it
 bands = np.array(band_files, dtype=float)
-X = np.array([band.ravel() for band in bands]).T  # (160000, 7)
+X = np.array([band.ravel() for band in bands]).T # (160000, 7)
 
 # Prediction / Classification
 group_pred = LDA.predict(X) # (160000)
